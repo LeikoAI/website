@@ -1,45 +1,49 @@
-import type { NavLink, SiteSettingsData } from '@/types/cms'
+import Link from 'next/link'
+import Image from 'next/image'
 
-const DEFAULT_LINKS: NavLink[] = [
-  { label: 'Features', href: '#features' },
-  { label: 'Team', href: '#mission' },
-  { label: 'Blog', href: '#' },
-  { label: 'FAQ', href: '#faq' },
-]
-
-export function Footer({ settings }: { settings?: SiteSettingsData | null }) {
-  const links =
-    settings?.footer?.links && settings.footer.links.length > 0
-      ? settings.footer.links
-      : DEFAULT_LINKS
-  const email = settings?.footer?.email ?? 'hello@leiko.ai'
-  const copyright = settings?.footer?.copyright ?? '© 2026 Leiko AI'
-
+export function Footer() {
   return (
     <footer>
-      <div className="container">
-        <div className="footer-inner">
-          <div className="footer-logo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2L14.4 8.8L21 11.2L14.4 13.6L12 20.4L9.6 13.6L3 11.2L9.6 8.8L12 2Z"
-                fill="#A09A94"
-                opacity="0.7"
-              />
-            </svg>
-            Leiko
+      <div className="ctn">
+        <div className="ft-top">
+          <div className="ft-brand">
+            <div className="ft-logo">
+              <Image src="/logo-assets/logo_leiko.png" alt="Leiko" width={20} height={20} /> Leiko
+            </div>
+            <p>
+              The AI operating layer for independent businesses. Built in Finland.
+            </p>
           </div>
-          <ul className="footer-nav">
-            {links.map((link, i) => (
-              <li key={link.id ?? i}>
-                <a href={link.href ?? '#'}>{link.label}</a>
-              </li>
-            ))}
-            <li>
-              <a href={`mailto:${email}`}>{email}</a>
-            </li>
-          </ul>
-          <div className="footer-copy">{copyright}</div>
+          <div className="ft-col">
+            <h4>Product</h4>
+            <Link href="/#features">Features</Link>
+            <Link href="/#how">How it works</Link>
+            <Link href="/#changelog">Changelog</Link>
+            <a href="#">Roadmap</a>
+          </div>
+          <div className="ft-col">
+            <h4>Company</h4>
+            <Link href="/about">About</Link>
+            <Link href="/blog">Blog</Link>
+            <a href="#">Careers</a>
+            <a href="mailto:hello@leiko.ai">Contact</a>
+          </div>
+          <div className="ft-col">
+            <h4>Legal</h4>
+            <Link href="/privacy">Privacy policy</Link>
+            <Link href="/terms">Terms of service</Link>
+            <Link href="/#security">Security</Link>
+          </div>
+        </div>
+        <div className="ft-bottom">
+          <div className="ft-copy">
+            &copy; 2026 Leiko AI Oy &middot; Helsinki, Finland
+          </div>
+          <div className="ft-socials">
+            <a href="#">𝕏</a>
+            <a href="#">LinkedIn</a>
+            <a href="#">GitHub</a>
+          </div>
         </div>
       </div>
     </footer>

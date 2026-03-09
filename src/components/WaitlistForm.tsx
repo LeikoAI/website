@@ -1,86 +1,92 @@
 'use client'
 
-import { useState } from 'react'
-
-type WaitlistFormProps = {
-  source: 'hero' | 'footer' | 'manifesto'
-  placeholder?: string
-  className?: string
-  buttonText?: string
-  inputClassName?: string
-}
+import { useState, type FormEvent } from 'react'
 
 export function WaitlistForm({
-  source,
-  placeholder = 'Your email',
-  className = '',
-  buttonText = 'Join the waitlist',
-  inputClassName = 'hero-email',
-}: WaitlistFormProps) {
+  inputClassName,
+  variant = 'hero',
+}: {
+  inputClassName?: string
+  variant?: 'hero' | 'footer'
+}) {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [message, setMessage] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'exists' | 'error'>('idle')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!email || status === 'loading') return
 
     setStatus('loading')
-    setMessage('')
 
     try {
-      const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_SITE_URL || ''
-      const res = await fetch(`${baseUrl}/api/waitlist`, {
+      const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), source }),
+        body: JSON.stringify({ email, source: variant }),
       })
 
-      const data = await res.json().catch(() => ({}))
+      const data = await res.json()
 
-      if (!res.ok) {
+      if (res.status === 201) {
+        setStatus('success')
+      } else if (res.status === 200 && data.message === 'Already on the list') {
+        setStatus('exists')
+      } else {
         setStatus('error')
-        setMessage(data.errors?.[0]?.message || data.message || 'Something went wrong')
-        return
       }
-
-      setStatus('success')
-      setEmail('')
-      setMessage('Thanks! You\'re on the list.')
     } catch {
       setStatus('error')
-      setMessage('Something went wrong. Please try again.')
     }
   }
 
   if (status === 'success') {
     return (
-      <div className={className}>
-        <p style={{ color: 'var(--accent)', fontWeight: 600 }}>{message}</p>
-      </div>
+      <p style={{ color: 'var(--acc)', fontWeight: 600, fontSize: 15 }}>
+        Thanks! We&apos;ll be in touch soon.
+      </p>
+    )
+  }
+
+  if (status === 'exists') {
+    return (
+      <p style={{ color: 'var(--acc)', fontWeight: 600, fontSize: 15 }}>
+        You&apos;re already on the list! We&apos;ll be in touch.
+      </p>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className={className} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+    <form onSubmit={handleSubmit} className={variant === 'hero' ? 'hero-form' : 'cr'}>
       <input
         type="email"
+        className={inputClassName ?? 'hero-input'}
+        placeholder={variant === 'footer' ? 'you@company.fi' : 'Your email'}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder={placeholder}
-        className={inputClassName}
-        disabled={status === 'loading'}
         required
+        disabled={status === 'loading'}
       />
-      <button type="submit" className="btn-main" disabled={status === 'loading'}>
-        {status === 'loading' ? 'Joining...' : buttonText}
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12" />
-          <polyline points="12 5 19 12 12 19" />
-        </svg>
+      <button type="submit" className="btn btn-p" disabled={status === 'loading'}>
+        {status === 'loading' ? 'Joining...' : 'Join the waitlist'}
+        {status !== 'loading' && (
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        )}
       </button>
-      {message && status === 'error' && (
-        <p style={{ width: '100%', color: 'var(--text-muted)', fontSize: 13 }}>{message}</p>
+      {status === 'error' && (
+        <p style={{ color: 'var(--red)', fontSize: 13, width: '100%', textAlign: 'center' }}>
+          Something went wrong. Please try again.
+        </p>
       )}
     </form>
   )
